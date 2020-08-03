@@ -8,24 +8,51 @@ services:
       - 3888:3888
     networks:
       debezium:
+
   kafka:
     image: debezium/kafka:1.2
     ports:
       - 9092:9092
+    environment:
+      ZOOKEEPER_CONNECT: zookeeper:2181
     networks:
       debezium:
+
   mysql:
     image: debezium/example-mysql:1.2
     environment:
       MYSQL_ROOT_PASSWORD: debezium
       MYSQL_USER: mysqluser
       MYSQL_PASSWORD: mysqlpw
+    networks:
+      debezium:
+
   connect:
     image: debezium/connect:1.2
     ports:
       - 8083:8083
     environment:
       GROUP_ID: "1"
+      BOOTSTRAP_SERVERS: kafka:9092
       CONFIG_STORAGE_TOPIC: my_connect_configs
       OFFSET_STORAGE_TOPIC: my_connect_offsets
       STATUS_STORAGE_TOPIC: my_connect_statuses
+    networks:
+      debezium:
+
+  watcher:
+    image: debezium/kafka:1.2
+    command: tail -f /dev/null
+    environment:
+      ZOOKEEPER_CONNECT: zookeeper:2181
+    networks:
+      debezium:
+
+  # kafka-cat:
+  #   image: edenhill/kafkacat:1.5.0
+  #   command: tail -f /dev/null
+  #   networks:
+  #     debezium:
+
+networks:
+  debezium:
